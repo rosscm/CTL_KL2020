@@ -12,7 +12,7 @@ for (p in packages) {
 loadfonts()
 
 # Set working directory
-setwd("/Users/catherineross/Dropbox/moffat/KL2020_analysis_CR")
+setwd("~/Dropbox/moffat/CTL_paper/Revised Manuscript/New figures/New data/Catherine")
 
 ######
 # DEFINE I/O

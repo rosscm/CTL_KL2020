@@ -12,7 +12,7 @@ for (p in packages) {
 loadfonts()
 
 # Set working directory
-setwd("/Users/catherineross/Dropbox/moffat/KL2020_analysis_CR")
+setwd("~/Dropbox/moffat/CTL_paper/Revised Manuscript/New figures/New data/Catherine")
 
 ######
 # DEFINE I/O
@@ -172,35 +172,41 @@ plotVolcano <- function(top_set, pathway_set) {
         x = "logFC",
         y = "P.Value",
         xlab = bquote(~Log[2]~ "foldchange"),
+        drawConnectors = TRUE,
+        widthConnectors = 0.25,
         selectLab = genes_label,
         colCustom = keyvals,
         colAlpha = 0.7,
         title = top_name,
         FCcutoff = lfc_cut,
         pCutoff = pval_cut,
-        drawConnectors = TRUE,
-        widthConnectors = 0.25,
-        labSize = 2,
+        labSize = 1.78,
+        labFace = "italic",
         boxedLabels = TRUE,
-        legendPosition = "bottom",
-        legendLabSize = 12,
         legendIconSize = c(2, 0.5, 2),
-        pointSize = sizevals
+        pointSize = sizevals,
+        #cutoffLineWidth = 0.5,
+        shape = 20
       )
 
-  p <- p + theme_classic() +
-           theme(text = element_text(family = "ArialMT", size = 10),
+  p <- p + theme_bw() +
+           theme(text = element_text(family = "ArialMT", size = 5),
                  legend.position = "bottom",
-                 legend.title = element_blank())
+                 legend.title = element_blank(),
+                 axis.line = element_line(colour = "black"),
+                 panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(),
+                 panel.border = element_blank(),
+                 panel.background = element_blank())
 
   # Define plot names
   plot_name <- sprintf("%s/plot_volcano_%s_%s", output_folder, top_name, pathway_set)
 
   if (pathway_set == "GO:0034976" | pathway_set == "R-HSA-381119") {
-    plot_name <- paste(plot_name, "ER.pdf", sep = "_")
+    plot_name <- paste(plot_name, "ER_v2.pdf", sep = "_")
   }
   if (pathway_set == "GO:0006986" | pathway_set == "975138.1") {
-    plot_name <- paste(plot_name, "NFKB.pdf", sep = "_")
+    plot_name <- paste(plot_name, "NFKB_v2.pdf", sep = "_")
   }
 
   # Draw out
@@ -378,9 +384,10 @@ plotVolcano <- function(top_set, pathway_set) {
   write.xlsx(pvals_out, file = table_name, row.names = FALSE)
 }
 
-setwd("~/Dropbox/moffat/CTL_paper/Revised Manuscript/New data/Catherine/RNAseq/DEG_volcano_boxplots")
+# Set output directory
+setwd("~/Dropbox/moffat/CTL_paper/Revised Manuscript/New figures/New data/Catherine/RNAseq/DEG_volcano_boxplots")
 
-# Run function
+# Define pathways of interest
 ER_pathway  <- "GO:0034976"
 ER_pathway2 <- "R-HSA-381119"
 NF_pathway  <- "GO:0006986"
@@ -391,6 +398,7 @@ pathway_list <- c(ER_pathway, ER_pathway2, NF_pathway, NF_pathway2)
 ## NF: Renca + TNF (comp 20 + 21) [22:23]
 ## ER: B16, Renca, RencaHA Fitm2 + IFN (comp 15, 19, 24, 10) [c(6,27,28,37)]
 
+# Run function
 for (f in fnames[22:23]) {
   mapply(plotVolcano, f, c(NF_pathway, NF_pathway2))
 }
