@@ -2,7 +2,7 @@
 # Plot toptable differential expression data & analyze mValidation gene distribution
 
 # Loads all packages in a way that allows exporting to child environments
-packages <- c("reshape2", "openxlsx", "dplyr", "fgsea", "ggplot2", "ggpubr", "ggh4x", "extrafont",  "RColorBrewer", "EnhancedVolcano")
+packages <- c("reshape2", "openxlsx", "dplyr", "fgsea", "ggplot2", "ggpubr", "ggh4x", "extrafont",  "RColorBrewer", "ggrepel")
 for (p in packages) {
   suppressPackageStartupMessages(library(p, character.only  =  TRUE))
 }
@@ -121,7 +121,7 @@ plotVolcano <- function(top_set, pathway_set) {
   if (!dir.exists(output_folder)) { dir.create(output_folder) }
 
   # Run for single comparison at a time
-  top_f <- tbl_df(top[[top_set]])
+  top_f <- top[[top_set]]
 
   # Vector of all genes in analysis
   genes <- select(top_f, EntrezGene.ID) %>%
@@ -140,64 +140,41 @@ plotVolcano <- function(top_set, pathway_set) {
   pathway_genes <- pathway[[pathway_name]]
 
   # Label genes associated with pathway
-  genes_label <- grep(paste(pathway_genes, collapse = "|"), genes_select, value = TRUE)
+  top_f$label <- ""
+  genes_label <- intersect(genes_select, pathway_genes)
+  top_f[which(top_f$EntrezGene.ID %in% genes_label), "label"] <- top_f[which(top_f$EntrezGene.ID %in% genes_label), "EntrezGene.ID"]
 
   # Colour points by gene regulation pattern (up/down)
-  keyvals <- c(rep("black", length(genes)))
+  top_f$colour <- "NS"
+  top_f[which(top_f$logFC > lfc_cut & top_f$P.Value < pval_cut), "colour"] <- "Upregulated"
+  top_f[which(top_f$logFC < -lfc_cut & top_f$P.Value < pval_cut), "colour"] <- "Downregulated"
 
-  # Set default
-  names(keyvals) <- rep("ns", length(genes))
+  # Facet levels
+  top_f$colour <- factor(top_f$colour, levels = c("Upregulated", "Downregulated", "NS"))
 
   # Get colour palette
   cols <- brewer.pal(3, "Dark2")
-  cols <- cols[2:3]
+  cols <- c(cols[2:3], "black")
 
-  # Upregulated points
-  keyvals[which(top_f$logFC > lfc_cut & top_f$P.Value < pval_cut)] <- cols[1]
-  names(keyvals)[which(top_f$logFC > lfc_cut & top_f$P.Value < pval_cut)] <- "Upregulated"
-
-  # Downregulated points
-  keyvals[which(top_f$logFC < -lfc_cut & top_f$P.Value < pval_cut)] <- cols[2]
-  names(keyvals)[which(top_f$logFC < -lfc_cut & top_f$P.Value < pval_cut)] <- "Downregulated"
-
-  # Size points by gene regulation pattern (up/down)
-  sizevals <- c(rep(0.5, length(genes)))
-  sizevals[which(abs(top_f$logFC) > lfc_cut & top_f$P.Value > pval_cut)] <- 1
-  sizevals[which(abs(top_f$logFC) > lfc_cut & top_f$P.Value < pval_cut)] <- 2
-
-  # Plot volcano
-  p <- EnhancedVolcano(top_f,
-        subtitle = NULL,
-        lab = genes,
-        x = "logFC",
-        y = "P.Value",
-        xlab = bquote(~Log[2]~ "foldchange"),
-        drawConnectors = TRUE,
-        widthConnectors = 0.25,
-        selectLab = genes_label,
-        colCustom = keyvals,
-        colAlpha = 0.7,
-        title = top_name,
-        FCcutoff = lfc_cut,
-        pCutoff = pval_cut,
-        labSize = 1.78,
-        labFace = "italic",
-        boxedLabels = TRUE,
-        legendIconSize = c(2, 0.5, 2),
-        pointSize = sizevals,
-        #cutoffLineWidth = 0.5,
-        shape = 20
-      )
-
-  p <- p + theme_bw() +
-           theme(text = element_text(family = "ArialMT", size = 5),
-                 legend.position = "bottom",
-                 legend.title = element_blank(),
-                 axis.line = element_line(colour = "black"),
-                 panel.grid.major = element_blank(),
-                 panel.grid.minor = element_blank(),
-                 panel.border = element_blank(),
-                 panel.background = element_blank())
+  # Plot
+  p <- ggplot(top_f, aes(x = logFC, y = -log10(P.Value))) +
+        geom_point(aes(fill = colour, size = colour), shape = 21) +
+        scale_fill_manual(values = cols) +
+        scale_size_manual(values = c(2, 2, 0.5)) +
+        geom_text_repel(aes(label = label, colour = colour), size = 1.78, fontface = "italic", segment.size = 0.1) +
+        geom_hline(yintercept = -log10(pval_cut), linetype = "dashed") +
+        geom_vline(xintercept = lfc_cut, linetype = "dashed") +
+        geom_vline(xintercept = -lfc_cut, linetype = "dashed") +
+        labs(x = "Log2-foldchange", y = "-Log10P") +
+        theme_bw(base_size = 5) +
+        theme(text = element_text(family = "ArialMT"),
+              legend.position = "bottom",
+              legend.title = element_blank(),
+              axis.line = element_line(colour = "black"),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.border = element_blank(),
+              panel.background = element_blank())
 
   # Define plot names
   plot_name <- sprintf("%s/plot_volcano_%s_%s", output_folder, top_name, pathway_set)
@@ -324,7 +301,7 @@ plotVolcano <- function(top_set, pathway_set) {
 
     # Plot
     p2 <- ggplot(plot_data4, aes(x = Analysis, y = mean_reads_fc)) +
-          geom_jitter(aes(fill = logFC), size = 2, shape = 21, width = 0.2, alpha = 0.7) +
+          geom_jitter(aes(fill = logFC), size = 2, shape = 21, width = 0.2) +
           geom_boxplot(fill = "lightgrey", alpha = 0.5, position = position_dodge(), outlier.alpha = 0) +
           theme_bw(base_size = 10) +
           geom_hline(yintercept = 0, linetype = "dashed") +
