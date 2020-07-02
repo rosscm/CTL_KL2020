@@ -15,7 +15,6 @@ setwd("~/Dropbox/moffat/CTL_paper/Revised Manuscript/New figures/New data/Cather
 ######
 
 ## INPUTS ##
-
 # In vivo data
 info_file   <- "sample_info/samples_list_KL.xlsx"
 rc_file     <- "readcounts/MUS018 EMT6-HA In Vivo Validation - 20200320 - readcounts.txt"
@@ -27,7 +26,6 @@ control_file <- "library_annotations/mVal_gene_list.txt"
 bf_file      <- "library_annotations/bftable_all.txt"
 
 ## OUTPUTS ##
-
 output_folder <- "/Users/catherineross/Dropbox/moffat/CTL_paper/Revised Manuscript/New figures/New data/Catherine/inVivo/unfiltered_data"
 plot_folder   <- sprintf("%s/plots", output_folder)
 table_folder  <- sprintf("%s/tables", output_folder)

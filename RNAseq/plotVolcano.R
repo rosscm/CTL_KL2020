@@ -20,7 +20,7 @@ setwd("~/Dropbox/moffat/CTL_paper/Revised Manuscript/New figures/New data/Cather
 
 ## INPUTS ##
 top_folders <- list.dirs("input/Data_cell line")
-top_files <- list.files(pattern="topTable", path = top_folders, full.names = TRUE)
+top_files <- list.files(pattern = "topTable", path = top_folders, full.names = TRUE)
 annotation_file <- "input/pathway_annotations/Mouse_GOBP_AllPathways_no_GO_iea_April_01_2019_symbol.gmt"
 rc_file <- "input/Analysis files/Keith_18July19_merged_STAR_log2CPM.txt"
 library_file <- "input/library_annotations/mVal_full_lib.txt"
@@ -216,6 +216,7 @@ plotVolcano <- function(top_set, pathway_set) {
             "Renca-ATCC WT.*.48hr|Renca-ATCC Atg12.*.48hr",
             "Renca-ATCC WT.*.48hr|Renca-ATCC Fitm2.*.48hr")
 
+  # Init lists to store data
   plots1 <- list()
   plots2 <- list()
   pvals <- list()
@@ -229,6 +230,7 @@ plotVolcano <- function(top_set, pathway_set) {
     facets_noifn <- facets[!(facets %in% facets_ifn)]
     facet_ctrl <- grep("intergenic|WT", facets_noifn, value = TRUE)
 
+    # Reverse plotting order for condition
     if (i == "Renca-HA intergenic 2|Renca-HA intergenic.*.IFN 2|Renca-HA.*.Atg12") {
       facets_ifn <- rev(facets_ifn)
       facets_noifn <- rev(facets_noifn)
@@ -328,7 +330,6 @@ plotVolcano <- function(top_set, pathway_set) {
 
   # Define plot names
   plot_name <- sprintf("%s/plot_boxplot_log2CPM_%s_%s", output_folder, top_set, pathway_set)
-
   if (pathway_set == "GO:0034976" | pathway_set == "R-HSA-381119") {
     plot_name1 <- paste(plot_name, "ER_allSamples.pdf", sep = "_")
     plot_name2 <- paste(plot_name, "ER_meanSig.pdf", sep = "_")
@@ -338,11 +339,12 @@ plotVolcano <- function(top_set, pathway_set) {
     plot_name2 <- paste(plot_name, "NFKB_meanSig.pdf", sep = "_")
   }
 
-  # Draw out
+  # Draw out plots1
   pdf(plot_name1, width = 8, height = 5, useDingbats = FALSE)
   print(plots1)
   dev.off()
 
+  # Draw out plots2
   pdf(plot_name2, width = 2, height = 5, useDingbats = FALSE)
   print(plots2)
   dev.off()
@@ -357,6 +359,7 @@ plotVolcano <- function(top_set, pathway_set) {
     table_name <- paste(table_name, "NFKB_meanSig.xlsx", sep = "_")
   }
 
+  # Write out pvalues
   pvals_out <- do.call("rbind", pvals)
   write.xlsx(pvals_out, file = table_name, row.names = FALSE)
 }
@@ -369,11 +372,10 @@ ER_pathway  <- "GO:0034976"
 ER_pathway2 <- "R-HSA-381119"
 NF_pathway  <- "GO:0006986"
 NF_pathway2 <- "975138.1"
-pathway_list <- c(ER_pathway, ER_pathway2, NF_pathway, NF_pathway2)
 
 # Boxplots for certain comparisons only
-## NF: Renca + TNF (comp 20 + 21) [22:23]
-## ER: B16, Renca, RencaHA Fitm2 + IFN (comp 15, 19, 24, 10) [c(6,27,28,37)]
+## NF: Renca + TNF (topTables comp 20 + 21)
+## ER: B16, Renca, RencaHA Fitm2 + IFN (topTables comp 15, 19, 24, 10)
 
 # Run function
 for (f in fnames[22:23]) {

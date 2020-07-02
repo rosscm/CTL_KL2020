@@ -106,7 +106,7 @@ plotScatter <- function(dat_file, tp, treatment) {
     )
   }
 
-  # Label specified points + all coloured points
+  # Label specified points + all coloured (significant) points
   dat_tp[which(dat_tp$GENE %in% gene_label), "label"] <- dat_tp[which(dat_tp$GENE %in% gene_label), "GENE"]
   dat_tp[which(dat_tp$type == "sensitizer" | dat_tp$type == "suppressor"), "label"] <- dat_tp[which(dat_tp$type == "sensitizer" | dat_tp$type == "suppressor"), "GENE"]
 
@@ -135,9 +135,6 @@ plotScatter <- function(dat_file, tp, treatment) {
               panel.grid.minor = element_blank(),
               panel.border = element_blank(),
               panel.background = element_blank())
-
-  # With marginal distributions
-  #p2 <- ggMarginal(p, groupFill = TRUE)
 
   # Draw out
   fname <- gsub(".xlsx", "", basename(dat_file))
